@@ -9,9 +9,9 @@ pnpm run dev
 
 ## Things to do
 
-- ❌ Create test for Products router
-- ❌ Create test for Carts router
-- ❌ Create test for Sessions router
+- ✅ Create test for Products router
+- ✅ Create test for Carts router
+- ✅ Create test for Sessions router
 
 ❌
 ✅
