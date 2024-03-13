@@ -107,7 +107,7 @@ try {
   app.use("/static", express.static(`${config.__DIRNAME}/public`));
 
   const httpServer = app.listen(config.PORT, () => {
-    console.log(`Express server active on port ${config.PORT}`);
+    console.log(`Express server active: http://localhost:${config.PORT}`);
   });
 
   app.use((err, req, res, next) => {

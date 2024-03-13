@@ -99,7 +99,7 @@ router.post("/", async (req, res, next) => {
   req.logger.http(`POST /api/products`);
   res.status(200).send({
     status: "OK",
-    data: `Product added with ID: ${productAdded._id}`,
+    data: productAdded,
   });
 });
 
@@ -121,31 +121,13 @@ router.put("/:pid", async (req, res, next) => {
 
 router.delete("/:pid", async (req, res) => {
   try {
-    if (req.session.user.role === "ADMIN") {
-      const pId = req.params.pid;
-      await controller.deleteProduct(pId);
-      req.logger.http(`DELETE /api/products/${pId}`);
-      res
-        .status(200)
-        .send({ status: "OK", data: `Product with ID: ${pId} has deleted` });
-    } else if (req.session.user.role === "PREMIUM") {
-      const pId = req.params.pid;
-      const userName = req.session.user.username;
-      const user = userModel.findOne({ username: userName });
-      if (!user) {
-        await controller.deleteProduct(pId);
-        req.logger.http(`DELETE /api/products/${pId}`);
-        res.status(200).send({
-          status: "OK",
-          data: `Product with ID: ${pId} has deleted`,
-        });
-      } else {
-        res.status(403).send({
-          status: "ERROR",
-          data: "You cannot delete products created by another user",
-        });
-      }
-    }
+    const pId = req.params.pid;
+
+    await controller.deleteProduct(pId);
+    req.logger.http(`DELETE /api/products/${pId}`);
+    res
+      .status(200)
+      .send({ status: "OK", data: `Product with ID: ${pId} has deleted` });
   } catch (err) {
     req.logger.error(`DELETE /api/products/${pId}`);
     res.status(400).send({ status: "ERR", data: err.message });
