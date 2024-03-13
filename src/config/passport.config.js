@@ -3,33 +3,9 @@ import LocalStrategy from "passport-local";
 import GithubStrategy from "passport-github2";
 import GoogleStrategy from "passport-google-oauth20";
 import userModel from "../models/users.models.js";
-import { createHash, isValidPassword } from "../utils.js";
 import config from "../config.js";
 
 const initPassport = () => {
-  const verifyRegistration = async (req, username, password, done) => {
-    try {
-      const user = req.body;
-
-      const userInDb = await userModel.findOne({
-        $or: [{ username: user.username }, { email: user.email }],
-      });
-
-      if (userInDb) {
-        if (userInDb.email === user.email) return done(`ERROR`, false);
-        return done(null, false);
-      }
-
-      user.password = createHash(user.password);
-
-      const process = await userModel.create(user);
-
-      return done(null, process);
-    } catch (err) {
-      return done(`Error passport local: ${err.message}`);
-    }
-  };
-
   const verifyGithub = async (accessToken, refreshToken, profile, done) => {
     try {
       const user = await userModel.findOne({
@@ -104,18 +80,6 @@ const initPassport = () => {
         callbackURL: config.GOOGLE_CALLBACK_URL,
       },
       verifyGoogle
-    )
-  );
-
-  passport.use(
-    "register",
-    new LocalStrategy(
-      {
-        passReqToCallback: true,
-        usernameField: "username",
-        passwordField: "password",
-      },
-      verifyRegistration
     )
   );
 

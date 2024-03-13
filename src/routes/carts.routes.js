@@ -23,9 +23,7 @@ router.post("/", async (req, res) => {
     const newCart = new Carts();
     const newCardDb = await cartsModel.create(newCart);
 
-    res
-      .status(200)
-      .send({ status: "OK", data: `Cart created with ID: ${newCardDb._id}` });
+    res.status(200).send({ status: "OK", data: newCardDb });
   } catch (err) {
     res.status(400).send({ status: "ERR", data: err.message });
   }

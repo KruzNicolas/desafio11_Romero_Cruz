@@ -25,27 +25,25 @@ const mailerService = nodemailer.createTransport({
 });
 
 // Register
-router.post(
-  "/register",
-  passport.authenticate("register", {
-    failureRedirect: "/api/sessions/failregister",
-    failureMessage: true,
-  }),
-  async (req, res) => {
-    try {
-      res.status(200).send({ status: "OK", data: `User registered` });
-    } catch (err) {
-      res.status(400).send({ status: "ERROR", data: err.message });
-    }
-  }
-);
+router.post("/register", async (req, res) => {
+  const user = req.body;
 
-router.get("/failregister", async (req, res) => {
-  // const errorMessage = req.flash('error')[0]
-  console.log(req.flash);
-  res
-    .status(400)
-    .send({ status: "ERROR", data: "Email or username already exist" });
+  const userInDb = await userModel.findOne({
+    $or: [{ username: user.username }, { email: user.email }],
+  });
+
+  if (userInDb) {
+    if (userInDb.email === user.email)
+      return res
+        .status(400)
+        .send({ status: "ERROR", data: `Mail already register` });
+  }
+
+  user.password = createHash(user.password);
+
+  await userModel.create(user);
+
+  res.status(200).send({ status: "OK", data: `User registered` });
 });
 
 // Restore password
@@ -130,44 +128,41 @@ router.get("/failrestore", async (req, res) => {
 
 // Login
 router.post("/login", async (req, res) => {
-  try {
-    const { username, password } = req.body;
+  const { username, password } = req.body;
 
-    const searchUserBaseData = await userModel
-      .findOne({ username: username })
-      .lean();
+  const searchUserBaseData = await userModel
+    .findOne({ username: username })
+    .lean();
 
-    if (
-      username === searchUserBaseData.username &&
-      isValidPassword(searchUserBaseData, password)
-    ) {
-      if (username === "Sombra") {
-        req.session.user = {
-          username: username,
-          firstName: searchUserBaseData.firstName,
-          lastName: searchUserBaseData.lastName,
-          role: searchUserBaseData.role,
-          email: searchUserBaseData.email,
-          image: "/static/image/KurumiSombra.jpg",
-        };
-        res.status(200).send({ Status: "OK", data: "User loged" });
-      } else {
-        req.session.user = {
-          username: username,
-          firstName: searchUserBaseData.firstName,
-          lastName: searchUserBaseData.lastName,
-          role: searchUserBaseData.role,
-          email: searchUserBaseData.email,
-        };
-        res.status(200).send({ Status: "OK", data: "User loged" });
-      }
+  if (!searchUserBaseData)
+    return res
+      .status(401)
+      .send({ status: "ERROR", data: "Username or Password are incorrect" });
+
+  if (
+    username === searchUserBaseData.username &&
+    isValidPassword(searchUserBaseData, password)
+  ) {
+    if (username === "Sombra") {
+      req.session.user = {
+        username: username,
+        firstName: searchUserBaseData.firstName,
+        lastName: searchUserBaseData.lastName,
+        role: searchUserBaseData.role,
+        email: searchUserBaseData.email,
+        image: "/static/image/KurumiSombra.jpg",
+      };
+      res.status(200).send({ Status: "OK", data: "User loged" });
     } else {
-      res
-        .status(401)
-        .send({ status: "ERROR", data: "Username or Password are incorrect" });
+      req.session.user = {
+        username: username,
+        firstName: searchUserBaseData.firstName,
+        lastName: searchUserBaseData.lastName,
+        role: searchUserBaseData.role,
+        email: searchUserBaseData.email,
+      };
+      res.status(200).send({ Status: "OK", data: "User loged" });
     }
-  } catch (err) {
-    res.status(500).send({ status: "ERROR", data: err.message });
   }
 });
 
